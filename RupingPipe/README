@@ -1,0 +1,15 @@
+
+Messages from Katherine about how to run the scripts
+
+steps 2 and 3 you run for each tumor sample
+step 4 you run once (takes care of all samples)
+step 5 you run for each tumor and normal sample
+step 6 you run once
+in each script change the email to be your email address
+other things you need to change in each script are SAMPLE, ROOT, and SOMATIC INFO
+Sample is just the name of the sample, root is the directory where all your results will be outputted
+
+if you want to see an example of somatic info I have one here (basically a tumor normal pairing):
+ /srv/gsfs0/projects/curtis/kpogrebn/TRIO/fastq/somaticInfo
+also, maybe copy over the whole directory I made for you so I don't accidentally edit it :wink:
+happy to do my best to answer any questions!

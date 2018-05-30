@@ -1,0 +1,17 @@
+name: vcf-to-bigquery-pipeline
+docker:
+  imageName: gcr.io/gcp-variant-transforms/gcp-variant-transforms
+  cmd: |
+    ./opt/gcp_variant_transforms/bin/vcf_to_bq \
+      --project gbsc-gcp-lab-snyder \
+      --input_pattern 'gs://gbsc-gcp-lab-snyder-user-ahorning/FAP-genomes/vcf/**.vcf' \
+      --output_table gbsc-gcp-lab-snyder:FAP_HaplotypeCaller_mtc_gVCFs.mtc_gVCFs_table \
+      --staging_location gs://gbsc-gcp-lab-snyder-user-ahorning/staging \
+      --temp_location gs://gbsc-gcp-lab-snyder-user-ahorning/temp \
+      --job_name vcf-to-bigquery \
+      --variant_merge_strategy MOVE_TO_CALLS \
+      --runner DataflowRunner \
+      --optimize_for_large_inputs \
+      --worker_machine_type n1-standard-8 \
+      --disk_size_gb 6800
+      
