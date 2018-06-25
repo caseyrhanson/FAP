@@ -1,0 +1,129 @@
+---
+title: "Untitled"
+author: "Aaron Horning"
+date: "6/8/2018"
+output: html_document
+---
+```{r}
+rm(list=ls())
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("GenVisR") #already installed on Aaron's macbookpro
+# Load the GenVisR package
+library("GenVisR")
+set.seed(426)
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+library(reshape2)
+setwd("~/Google Drive/Stanford_postdoc/Research/FAP Samples_EdEsplin/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP")
+
+```
+
+
+```{r, echo=T,eval=T}
+#Read in clinical information for adding additional information to waterfall plots
+sampleData <- read.table("https://docs.google.com/spreadsheets/d/e/2PACX-1vRd0tND0K2rcfq_C6pte4_W42vkuwsemkv_A_jnrm6mm5N72nxxw5Bezumy898XmtzEQlcxfrYW9j2E/pub?output=csv",sep = ",",header = T)
+
+#choose only necessary column data. Replace "-" with "."
+#Chose patient EP to start with
+clinical<-select(sampleData, "Sample_Name", "Stage", "Location_of_Sampled_Specimen", "Size_.mm.", "Size_SML.S..5.5.M..10.L.10.", "Grade", "PatientSample_ez",  "mean_coverageMetrics")%>%
+  filter(grepl("EP",PatientSample_ez))%>%
+  mutate(sample=str_replace_all(Sample_Name, pattern = "-",replacement = "."))%>%
+  select(-Sample_Name)
+#Create the long melted version of the clinical table
+clinical.melt<-melt(clinical,id.vars = "sample")
+
+target <- c( "Stage","Location_of_Sampled_Specimen","Size_SML.S..5.5.M..10.L.10." ,"Grade")
+x<-filter(clinical.melt, variable %in% target)
+```
+
+
+```{r, echo=TRUE, eval=TRUE}
+file<-read.table(file = "mutect.snv.res.filtered.classified.founds.nopara.somatic.table.simplified.txt", header = T, sep = "\t",quote = "")
+
+#Select only statistically interesting columns. Rename the columns so that are compatible with sample information
+        #also, create new columns that represent the number of reads that a variant is represented by: (maf x depth = varreads).
+file<-select(file, chr, pos, id, ref, alt, geneName, geneLoc, functionalClass, somatic, germline,ends_with(match = "maf"), ends_with(match = "d"),-CADD_phred, -Polyphen2_HVAR_pred, -mutect.snv.res.filtered.classified.founds.flanking.bam.out.bad)
+
+maf <- select(file, contains('maf')) #select only "maf" minor allele frequency columns
+d <- select(file, ends_with('d'),-id,) #select only "d" depth columns
+num_var_reads <- maf*d #multiplying the two determines the number of reads which contained the variant.
+colnames(num_var_reads)<-str_replace_all(colnames(num_var_reads),pattern = "maf",replacement = "numvarreads") #relabel the columns for the num_var_reads
+
+file<-cbind(file,num_var_reads) #adds num_var_reads columns to file table
+file_varreads<-file[,c(1:10,71:100)] #selects variant descriptor columns and num_var_reads
+file_varreads_melt<-gather(file_varreads,"SampleName", "Num_var_reads",11:40)%>%
+        filter(Num_var_reads>=10)%>%
+        filter(grepl("JP",SampleName))
+
+#Create new column for variant class - if in geneLoc exon, add the functional class.
+file_varreads_melt$variant_class <- ifelse(file_varreads_melt$geneLoc != "exonic", as.character(file_varreads_melt$geneLoc),as.character(file_varreads_melt$functionalClass))
+
+#remove numvarreads from the names
+file_varreads_melt$SampleName<-str_replace_all(string = file_varreads_melt$SampleName,pattern = "numvarreads",replacement = "")
+
+#consider making MAF plots per patient
+customMAF <- select(file_varreads_melt, "sample"="SampleName","gene"="geneName", variant_class )%>% #sample,gene,variant_class
+        mutate_all(funs(factor))
+
+
+waterfall(customMAF, fileType = "Custom",variant_class_order = c("nonsynonymous SNV", "stopgain", "ncRNA_exonic", "UTR3", "UTR5", "downstream", "upstream", "intergenic", "intronic","splicing", "ncRNA_splicing", "ncRNA_intronic", "synonymous SNV", "unknown"),mainDropMut = T,mainXlabel = T,mainRecurCutoff = .03,plotMutBurden = T,maxGenes = 400, clinData = clinical.melt)
+
+
+# load ggplot2
+library(ggplot2)
+
+# suppress the y axis labels in the mutation burden plot
+mut_burden_layer <- theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), 
+    axis.title.y = element_blank())
+
+# change the ggplot theme back to default in the main plot
+main_layer <- theme_grey()
+
+# Run waterfall with the new layer
+waterfall(customMAF, fileType = "Custom",variant_class_order = c("nonsynonymous SNV", "splicing", "stopgain", "ncRNA_exonic", "ncRNA_splicing", "UTR3", "UTR5", "downstream", "upstream", "intergenic", "intronic", "ncRNA_intronic", "synonymous SNV", "unknown"), mainRecurCutoff = 0.05, maxGenes = 100, mainDropMut = TRUE, mainLayer = main_layer, mutBurdenLayer = mut_burden_layer)
+
+#output data files
+x<-waterfall(customMAF, fileType = "Custom",variant_class_order = c("nonsynonymous SNV", "splicing", "stopgain", "synonymous SNV", "ncRNA_exonic", "ncRNA_splicing", "UTR3", "UTR5", "downstream", "upstream", "intergenic", "intronic", "ncRNA_intronic", "unknown"), mainDropMut = T, mainXlabel = T, mainRecurCutoff = 0.03,plotMutBurden = T,out = "data")
+
+
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Create clinical data
+subtype <- c("lumA", "lumB", "her2", "basal", "normal")
+subtype <- sample(subtype, 50, replace = TRUE)
+age <- c("20-30", "31-50", "51-60", "61+")
+age <- sample(age, 50, replace = TRUE)
+sample <- as.character(unique(brcaMAF$Tumor_Sample_Barcode))
+clinical <- as.data.frame(cbind(sample, subtype, age))
+
+# Melt the clinical data into 'long' format.
+library(reshape2)
+clinical <- melt(clinical, id.vars = c("sample"))
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
