@@ -4,6 +4,8 @@ author: "Aaron Horning"
 date: "6/8/2018"
 output: html_document
 ---
+
+# Read in libraries and set seed
 ```{r}
 rm(list=ls())
 #source("https://bioconductor.org/biocLite.R")
@@ -21,7 +23,7 @@ setwd("~/Google Drive/Stanford_postdoc/Research/FAP Samples_EdEsplin/DNAseq_WGS/
 
 ```
 
-
+# Read in and organize some clinical data for the FAP samples
 ```{r, echo=T,eval=T}
 #Read in clinical information for adding additional information to waterfall plots
 sampleData <- read.table("https://docs.google.com/spreadsheets/d/e/2PACX-1vRd0tND0K2rcfq_C6pte4_W42vkuwsemkv_A_jnrm6mm5N72nxxw5Bezumy898XmtzEQlcxfrYW9j2E/pub?output=csv",sep = ",",header = T)
@@ -36,10 +38,10 @@ clinical<-select(sampleData, "Sample_Name", "Stage", "Location_of_Sampled_Specim
 clinical.melt<-melt(clinical,id.vars = "sample")
 
 target <- c( "Stage","Location_of_Sampled_Specimen","Size_SML.S..5.5.M..10.L.10." ,"Grade")
-x<-filter(clinical.melt, variable %in% target)
+clinical.melt<-filter(clinical.melt, variable %in% target)
 ```
 
-
+# Read in and reorganize the Somatic Mutation table. Prepare for Waterfall plot creation.
 ```{r, echo=TRUE, eval=TRUE}
 file<-read.table(file = "mutect.snv.res.filtered.classified.founds.nopara.somatic.table.simplified.txt", header = T, sep = "\t",quote = "")
 
@@ -68,62 +70,13 @@ file_varreads_melt$SampleName<-str_replace_all(string = file_varreads_melt$Sampl
 customMAF <- select(file_varreads_melt, "sample"="SampleName","gene"="geneName", variant_class )%>% #sample,gene,variant_class
         mutate_all(funs(factor))
 
+#better to use R console to produce these plots (rather than knitr environment)
+waterfall(customMAF, fileType = "Custom",variant_class_order = c("nonsynonymous SNV", "stopgain", "ncRNA_exonic", "UTR3", "UTR5", "downstream", "upstream", "intergenic", "intronic","splicing", "ncRNA_splicing", "ncRNA_intronic", "synonymous SNV", "unknown"),mainDropMut = T,mainXlabel = T,mainRecurCutoff = .03,plotMutBurden = T,maxGenes = 400)
 
-waterfall(customMAF, fileType = "Custom",variant_class_order = c("nonsynonymous SNV", "stopgain", "ncRNA_exonic", "UTR3", "UTR5", "downstream", "upstream", "intergenic", "intronic","splicing", "ncRNA_splicing", "ncRNA_intronic", "synonymous SNV", "unknown"),mainDropMut = T,mainXlabel = T,mainRecurCutoff = .03,plotMutBurden = T,maxGenes = 400, clinData = clinical.melt)
-
-
-# load ggplot2
-library(ggplot2)
-
-# suppress the y axis labels in the mutation burden plot
-mut_burden_layer <- theme(axis.ticks.y = element_blank(), axis.text.y = element_blank(), 
-    axis.title.y = element_blank())
-
-# change the ggplot theme back to default in the main plot
-main_layer <- theme_grey()
-
-# Run waterfall with the new layer
-waterfall(customMAF, fileType = "Custom",variant_class_order = c("nonsynonymous SNV", "splicing", "stopgain", "ncRNA_exonic", "ncRNA_splicing", "UTR3", "UTR5", "downstream", "upstream", "intergenic", "intronic", "ncRNA_intronic", "synonymous SNV", "unknown"), mainRecurCutoff = 0.05, maxGenes = 100, mainDropMut = TRUE, mainLayer = main_layer, mutBurdenLayer = mut_burden_layer)
-
-#output data files
+#output data files. Creates tabular information.
 x<-waterfall(customMAF, fileType = "Custom",variant_class_order = c("nonsynonymous SNV", "splicing", "stopgain", "synonymous SNV", "ncRNA_exonic", "ncRNA_splicing", "UTR3", "UTR5", "downstream", "upstream", "intergenic", "intronic", "ncRNA_intronic", "unknown"), mainDropMut = T, mainXlabel = T, mainRecurCutoff = 0.03,plotMutBurden = T,out = "data")
 
 
 ```
 
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-
-# Create clinical data
-subtype <- c("lumA", "lumB", "her2", "basal", "normal")
-subtype <- sample(subtype, 50, replace = TRUE)
-age <- c("20-30", "31-50", "51-60", "61+")
-age <- sample(age, 50, replace = TRUE)
-sample <- as.character(unique(brcaMAF$Tumor_Sample_Barcode))
-clinical <- as.data.frame(cbind(sample, subtype, age))
-
-# Melt the clinical data into 'long' format.
-library(reshape2)
-clinical <- melt(clinical, id.vars = c("sample"))
-```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
