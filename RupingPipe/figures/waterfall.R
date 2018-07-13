@@ -24,7 +24,7 @@ setwd("~/Google Drive/Stanford_postdoc/Research/FAP Samples_EdEsplin/DNAseq_WGS/
         ### Read in and reorganize the Somatic Mutation table. Prepare for Waterfall plot creation.
         file<-read.table(file = "mutect.snv.res.filtered.classified.founds.nopara.somatic.table.simplified", header = T, sep = "\t",quote = "")
 
-
+## filter out mutations that have both rep=1 and sc=1
 
 ### For loops to analyze different Exonic regions and Patient data.
 patients <- c("JP","EP")
@@ -47,7 +47,7 @@ for (pt in patients) {
                 
                 #Select only statistically interesting columns. Rename the columns so that are compatible with sample information
                 #also, create new columns that represent the number of reads that a variant is represented by: (maf x depth = varreads).
-                file_2<-select(file, chr, pos, id, ref, alt, geneName, geneLoc, functionalClass, somatic, germline,ends_with(match = "maf"), ends_with(match = "d"),-CADD_phred, -Polyphen2_HVAR_pred, -mutect.snv.res.filtered.classified.founds.flanking.bam.out.bad)
+                file_2<-select(file, chr, pos, id, ref, alt, geneName, geneLoc, functionalClass, somatic, germline,rep,sc,ends_with(match = "maf"), ends_with(match = "d"),-CADD_phred, -Polyphen2_HVAR_pred, -mutect.snv.res.filtered.classified.founds.flanking.bam.out.bad)
                 
                 # maf <- select(file, contains('maf')) #select only "maf" minor allele frequency columns
                 # d <- select(file, ends_with('d'),-id,) #select only "d" depth columns
@@ -58,14 +58,16 @@ for (pt in patients) {
                 # file_varreads<-file[,c(1:10,71:100)] #selects variant descriptor columns and num_var_reads
                 
                 
-                file_varreads<-file_2[,c(1:40)] #selects variant descriptor columns and maf columns
+                file_varreads<-file_2[,c(1:42)] #selects variant descriptor columns and maf columns
                 colnames(file_varreads)<-str_replace_all(colnames(file_varreads),pattern = "maf",replacement = "")
                 
                 #select only variants per polyp which are known to be somatic
-                file_varreads_melt<-gather(file_varreads,"SampleName", "MAF",11:40)%>%
+                file_varreads_melt<-gather(file_varreads,"SampleName", "MAF",13:42)%>%
                         filter(grepl(paste(pt),SampleName))%>%
                         filter(str_detect(somatic, paste0(SampleName,"\\","[")))%>% #filters for only somatic mutations per sample
-                        filter(MAF>=0.05)
+                        filter(MAF>=0.05)%>%
+                        filter(!(rep==1 & sc==1))
+
                 
                 # #Create new column for variant class - if in geneLoc exon, add the functional class.
                 if (region=="exonic") {
