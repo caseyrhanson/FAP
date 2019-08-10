@@ -1,11 +1,11 @@
 vapReduce_cover_vcover_mutect = function(vap, patient){
-  #make a new talbe with sample_mutect, sample_cover sample_freq
-  # mutect is boolean (yes or no), cover is depth (d), freq is maf (percentage).
+  # Make a new table with sample_mutect, sample_cover sample_freq
+  # Mutect is boolean (yes or no), cover is depth (d), freq is maf (percentage).
   
   library(dplyr);library(tidyr);library(stringr)
   
-  #make vap file patient specific
-  #choose only first columns ("chr", "pos", "id", "ref", "alt") and  columns related to specific patient
+  # Make vap file patient specific
+  # Choose only first columns ("chr", "pos", "id", "ref", "alt") and  columns related to specific patient
   index.patient = which(grepl(patient,colnames(vap)))
   vap.reduced.patientspecific = vap[,c(1:6,index.patient)]  
   
