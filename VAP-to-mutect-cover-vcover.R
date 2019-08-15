@@ -1,6 +1,12 @@
 rm(list=ls())
 setwd("/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/")
 
+#########
+# Consider something like this to collect all of the mutations per sample
+# x = data.frame(matrix(c(1,2,3,10),byrow = T,nrow = 2),stringsAsFactors = F)
+# y = data.frame(matrix(c("a","b","c","z"),byrow = T,nrow = 2),stringsAsFactors = F)
+# y[x<=1 | x==10 | y=="b"] = "aaron"
+#######
 
 source("~/aarons_FAP_github_repository/vapReduce_cover,vcover,mutect.R")
 
