@@ -28,6 +28,7 @@ vapReduce_cover_vcover_mutect = function(vap, patient){
   maf = vap.reduced[,index.maf.cols]
   maf[maf!=0] = "yes"
   maf[maf==0] = "unknown"
+  maf[is.na(maf)] = "unknown"
   
   ##Create new columns that say _mutect
   mutect.names = str_c(sample.names,"_mutect")
