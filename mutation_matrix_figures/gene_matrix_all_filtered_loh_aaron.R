@@ -9,16 +9,19 @@
 rm(list=ls())
 ##Add LOH annotations for APC, TP53 and SMAD4
 library(GenVisR);library(dplyr);library(tidyr);library(stringr);library(BiocGenerics);library(stringr)
-setwd("DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/WES_Nov2018/")
+# setwd("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/WES_Nov2018/")
+setwd("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/")
 
 mycolors <- c("#D55E00","#0072B2","#66c2a5","#E69F00","#e78ac3","#8da0cb",
 	      "#999999","#FFFFFF","#f4cae4")
+plot(1:length(mycolors),1:length(mycolors),col = mycolors,pch = 17)
 
 # dir1 <- "dir1"
 # samples <- read.table("alltumorlabels2.txt",as.is=TRUE, header=T)$Bam
 # samplelabels <- read.table("alltumorlabels2.txt",as.is=TRUE, header=T)$Label
 
 samples = read.table(file = "mutect.snv.res.filtered.classified.founds.nopara.somatic.table.adjustedCCF.q100.clonal0.6.EP.txt",header = T,sep = "\t")
+samples = read.table(file = "mutect.snv.res.filtered.classified.founds.nopara.somatic.table.simplified",header = T,sep = "\t")
 
 
 
@@ -30,7 +33,8 @@ SNVtypes = levels(unique(samples$functionalClass)) #creates chr string of types 
 #SNVtypes2 <- c("nonsynonymous","splicing","stopgain","stoploss")
 tissuetypes <-  c("Polyp","Normal","AdenoCarcinoma") # is.normal = str_detect(samplelabels,"Asc|Trans")
 
-patients <- c("EP","JP")
+# patients <- c("EP","JP")
+patients <- c("A001","A002")
 
 # idx1 <- which(sapply(strsplit(samples,"_",fixed=TRUE),"[",1) %in% patients)
 # samples <- samples[idx1]
