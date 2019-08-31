@@ -1,0 +1,3 @@
+[submodule "ccf_estimation/VAP"]
+	path = ccf_estimation/VAP
+	url = https://github.com/cancersysbio/VAP.git
