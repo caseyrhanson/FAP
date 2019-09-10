@@ -3,7 +3,7 @@
 rm(list=ls())
 
 library("GenVisR");library(dplyr);library(tidyr);library(stringr);library(reshape2);library(ggplot2)
-setwd("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/WES_Nov2018/")
+setwd("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/")
 
 
 pts=c("EP","JP")
