@@ -8,6 +8,16 @@ library(dplyr);library(tidyr);library(stringr);library(GenomicRanges)
 setwd("~/Google Drive/Stanford_postdoc/Research/FAP Samples_EdEsplin/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/")
 # Pyclone Input #######
 
+#Collect Amino Acid Change data for each of the Mutations in the data set
+vap = read.table(file = "mutect.snv.res.filtered.classified.founds.nopara.somatic.table",header = T,sep = "\t",stringsAsFactors = F)
+mutID.AA = unite(data = vap, col = "mutation_id",chr,pos,geneName,ref,alt,sep = ":")%>%
+  select(mutation_id,AAChange)%>%
+  separate(AAChange,"AAchange_1",",",extra = "drop")%>%
+  unite(mutation_id_2,AAchange_1,mutation_id,remove = F,sep = ",")%>%
+  mutate(mutation_id_2 = str_replace(mutation_id_2,"^,",replacement = ""))%>%
+  select(mutation_id,"mutation_id_AAchange" = mutation_id_2,AAchange_1)
+head(mutID.AA)
+
 ######## Read in the SNV data and reshape it so only ref and alt counts are included
 pts=c("A001","A002")
 pt="A001"
@@ -98,6 +108,9 @@ for (pt in pts) {
              sample_cnv = cnvRangeA_M.sample_cnv)%>%
       unite(col = "mutation_id",chr,pos,geneName,ref,alt,sep = ":")
     
+    # for Including Amino acid changes in the output
+    # x = full_join(y,mutID.AA,"mutation_id")
+
     
     dir.create(path = "pyclone/",showWarnings = F)
     write.table(y,file = paste0("pyclone/",samples[i],".tsv"),

@@ -44,8 +44,6 @@ onc.matrix = matrix(data = "",nrow = length(gene.drivers),ncol = length(samples)
 colnames(onc.matrix) = samples #has "." instead of "-"
 rownames(onc.matrix) = gene.drivers
 
-
-
 for (i in 1:nrow(muts.cols.drivers)) {
   sample.bracket = head(str_split(muts.cols.drivers$somatic[i],pattern = ",")[[1]],-1)
   for (sample in sample.bracket) {
@@ -105,23 +103,26 @@ onc.plot = draw(oncoPrint(mat = onc.matrix.less,get_type = get_type_fun,
 
 #read in the sample table with the sample names and its associated tissue types
 source("~/aarons_FAP_github_repository/recent_Annotation.R")
-anno = recent_Annotation()
+anno = recent_Annotation(go_online = "yes")
 samples.tissue.types = data.frame(Samples = str_remove_all(string = anno$VAP_Names,pattern = "-"),
                                   Patient = anno$Patient,
                                   Stage = anno$Stage..Polyp..Normal..AdCa.,
                                   Size = sapply(str_split(anno$Size..mm.,"x",simplify = F),"[",1),
                                   Location = anno$Location,
                                   stringsAsFactors = F)
+#If Tissue is Normal, remove Size information
+samples.tissue.types$Size[samples.tissue.types$Stage=="Normal"] = "" 
 
 ##Determine order of columns of heatmap
-onc.plot.col.order = colnames(onc.matrix.less[,column_order(onc.plot)[[2]]]) #get column order
-# onc.plot.col.order[!(onc.plot.col.order %in% samples.tissue.types$samples)] #determine which samples dont match
-samples.tissue.types = samples.tissue.types[match(onc.plot.col.order,samples.tissue.types$Samples),] #reorganize clinical data by columns in heatmap
+#get column order
+onc.plot.col.order = colnames(onc.matrix.less[,column_order(onc.plot)[[2]]]) 
+#reorganize clinical data by columns in heatmap
+samples.tissue.types = samples.tissue.types[match(onc.plot.col.order,samples.tissue.types$Samples),] 
 
 
-#samples.tissue.types$Stage = as.factor(samples.tissue.types$Stage)
+#Colors for continuous Size variable
+#Makes size a numeric values
 samples.tissue.types$Size = as.numeric(samples.tissue.types$Size)
-
 
 #colors for continuous variables
 col_size = colorRamp2(c(min(samples.tissue.types$Size,na.rm = T),
@@ -129,6 +130,8 @@ col_size = colorRamp2(c(min(samples.tissue.types$Size,na.rm = T),
                       c("lightgreen", "navy"))
 
 #colors for discrete variables
+samples.tissue.types$Patient = str_replace_all(samples.tissue.types$Patient,pattern = "EP",replacement = "F")
+samples.tissue.types$Patient = str_replace_all(samples.tissue.types$Patient,pattern = "JP",replacement = "G")
 col_patient = brewer.pal(n = length(unique(samples.tissue.types$Patient)), name = "Accent")
 names(col_patient) = unique(samples.tissue.types$Patient)
 
@@ -162,6 +165,9 @@ ha = HeatmapAnnotation(which = "column",show_annotation_name = T,
                        na_col = "white",
                        gp = gpar(col = "black"))
 
+#rename sample names: EP to F and JP to G
+colnames(onc.matrix.less) = str_replace_all(string = colnames(onc.matrix.less),pattern = "EP",replacement = "F")
+colnames(onc.matrix.less) = str_replace_all(string = colnames(onc.matrix.less),pattern = "JP",replacement = "G")
 onc.plot = draw(oncoPrint(mat = onc.matrix.less,get_type = get_type_fun,
                           alter_fun = alter_fun,
                           col = col,show_column_names = T,column_order = NULL,
@@ -170,7 +176,7 @@ onc.plot = draw(oncoPrint(mat = onc.matrix.less,get_type = get_type_fun,
                           width = unit(x = 12,units = "cm")))
 
 #Save the plot
-svg(filename = "A001_A002_EP_JP_oncoplot.svg",width = 12)
+svg(filename = "A001_A002_F_G_oncoplot.svg",width = 12)
 onc.plot
 dev.off()
 
