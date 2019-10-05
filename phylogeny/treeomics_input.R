@@ -39,9 +39,10 @@ for (pt in pts) {
     snvs.col.arranged = snvs[,grepl("A0",colnames(snvs))] #find all sample columns with "A0"
     snvs.col.arranged.d = snvs.col.arranged[,str_ends(colnames(snvs.col.arranged),"d")] #collect all d cols
     snvs.col.arranged.maf = snvs.col.arranged[,str_ends(colnames(snvs.col.arranged),"maf")] #collect all maf cols
-    altc = snvs.col.arranged.d * snvs.col.arranged.maf # d times maf is alt count
-    str_sub(colnames(altc),start = -1) = "_altc" #change "d" of colnames to "altc"
     
+    #need whole numbers in output
+    altc = round(snvs.col.arranged.d * snvs.col.arranged.maf) # d times maf is alt count
+    str_sub(colnames(altc),start = -1) = "_altc" #change "d" of colnames to "altc"
     snvs = cbind(snvs,altc) #put all columns back together
     rm(snvs.col.arranged,snvs.col.arranged.d,snvs.col.arranged.maf)
     
@@ -89,10 +90,10 @@ for (pt in pts) {
                 sep = "\t", append = F, row.names = F)
     
   } else if (grepl(pattern = "A001|A002",x = pt)){
-    write.table(phred,file = paste0(pt,"WGS_phredcoverage.txt"),
+    write.table(phred,file = paste0(pt,"_WGS_phredcoverage.txt"),
                 sep = "\t", append = F, row.names = F)
     
-    write.table(mutreads,file = paste0(pt,"WGS_mutant_reads.txt"),
+    write.table(mutreads,file = paste0(pt,"_WGS_mutant_reads.txt"),
                 sep = "\t", append = F, row.names = F)
   }
   
