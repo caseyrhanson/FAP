@@ -8,18 +8,21 @@ library(dplyr);library(tidyr);library(ggplot2);library(stringr);library(reshape2
 set.seed(426)
 
 #read in the sample table with the sample names and its associated tissue types
-recent = read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vRsC3CJUE-kFKdfrA5CB-K8V4896QyvVGONRk2B9BEqv6bwf3ovAtJ_W4nJmhfo18l61AOH7QztmYEO/pub?gid=0&single=true&output=csv",stringsAsFactors = F)
+setwd("~/aarons_FAP_github_repository/")
+source("recent_Annotation.R")
+recent = recent_Annotation("no")
 recentWGS = recent[recent$DNA_WGS!="",]
 recentWGS$samples = str_remove_all(string = recentWGS[,1],pattern = "-")
 
-# setwd("~/Google Drive/Stanford_postdoc/Research/FAP Samples_EdEsplin/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP")
-setwd("~/Bulk_A001_A002/")
-# patients<-c("EP","JP")
-patients = c("A001","A002")
+
+patients = c("A001","A002");setwd("~/Bulk_A001_A002/");path = "mutect.snv.res.filtered.classified.founds.nopara.somatic.table.ccf."
+
+# patients = c("EP","JP");setwd("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/"); path = "mutect.snv.res.filtered.classified.founds.nopara.somatic.table.adjustedCCF.q100."
+
 
 for (pt in patients) {
-        # file<-read.table(file = paste0("mutect.snv.res.filtered.classified.founds.nopara.somatic.table.adjustedCCF.q100.",pt,".txt"), header = T, sep = "\t")
-        file<-read.table(file = paste0("mutect.snv.res.filtered.classified.founds.nopara.somatic.table.ccf.",pt,".txt"), header = T, sep = "\t")
+        # file<-read.table(file = paste0(path,pt,".txt"), header = T, sep = "\t")
+        file<-read.table(file = paste0(path,pt,".txt"), header = T, sep = "\t")
         #Select only statistically interesting columns. Rename the columns so that are compatible with sample information
         file_2<-select(file, chr, pos, id, ref, alt, geneName, geneLoc, functionalClass, somatic, rep,ends_with(match = "ccf"),-mergeCCF,-contains("bpccf"))
                 # filter(!(rep==1 & sc==1))%>% #remove low grade mutations-repeats and poor mapping?
@@ -73,8 +76,8 @@ for (pt in patients) {
         ggsave(filename = paste0(pt,"_ccf_distributions_exonic.pdf"),plot = ccf_hist)
 }
 
-##scatter plots of CCFs
-
+##scatter plots of CCFs with GGally
+#https://drsimonj.svbtle.com/pretty-scatter-plots-with-ggplot2
 for (pt in patients) {
   file<-read.table(file = paste0("mutect.snv.res.filtered.classified.founds.nopara.somatic.table.ccf.",pt,".txt"), header = T, sep = "\t")
   file<-select(file,"chr","pos","id","ref","alt",ends_with("ccf"),-mergeCCF,functionalClass,-contains("bpccf"))
@@ -138,5 +141,49 @@ for (pt in patients) {
   }
 
 
+#################### remake of CCF distribution plots
 
-#https://drsimonj.svbtle.com/pretty-scatter-plots-with-ggplot2
+#read in the sample table with the sample names and its associated tissue types
+setwd("~/aarons_FAP_github_repository/")
+source("recent_Annotation.R")
+recent = recent_Annotation("no")
+recent = data.frame(recent,stringsAsFactors = F)
+
+pts = c("A001","A002"); setwd("~/Bulk_A001_A002/");pt = "A001"
+
+  file<-read.table(file = paste0("mutect.snv.res.filtered.classified.founds.nopara.somatic.table.ccf.",pt,".txt"), header = T, sep = "\t")
+  # file<-select(file,"chr","pos","id","ref","alt",ends_with("ccf"),-mergeCCF,functionalClass,-contains("bpccf"))
+  
+  #change the EP and JP values
+  if (pt=="EP") {
+    colnames(file) = str_replace(colnames(file),paste0(pt,"."),"F_")
+  } else if (pt=="JP") {
+    colnames(file) = str_replace(colnames(file),pt,"G_")
+  }
+  
+  ## http://ggobi.github.io/ggally/#custom_functions
+  
+  #Rename samples to include Stage and Size (mm)
+  samples = str_remove(string = colnames(file)[str_detect(string = colnames(file),pattern = "ccf")],pattern = "ccf")
+  recent$SampleName = str_remove_all(string = recent$SampleName,pattern = "-")
+  for (sample in samples) {
+    sample.index = recent$SampleName %in% sample
+    stage = recent$Stage..Polyp..Normal..AdCa.[recent$SampleName == sample]
+    size = recent$Size..mm.[recent$SampleName == sample]
+    recent$SampleName[recent$SampleName == sample] = paste0(sample,"_",stage,"_",size)
+  }
+
+polyp1 = "A001C004"
+polyp2 = "A001C007"
+
+polyp1ccf = file[,colnames(file) %in% paste0(polyp1,"ccf")]
+polyp2ccf = file[,colnames(file) %in% paste0(polyp2,"ccf")]
+
+plot(polyp2ccf,polyp1ccf,xlab = polyp2, ylab = polyp1)
+  
+  
+  
+# https://www.reed.edu/data-at-reed/resources/R/loops_with_ggplot2.html
+# for making an iterative for loop for plotting
+  
+  

@@ -103,13 +103,16 @@ onc.plot = draw(oncoPrint(mat = onc.matrix.less,get_type = get_type_fun,
 
 #read in the sample table with the sample names and its associated tissue types
 source("~/aarons_FAP_github_repository/recent_Annotation.R")
-anno = recent_Annotation(go_online = "yes")
+anno = recent_Annotation(go_online_clinical = "yes",go_online_pathology = "yes")
 samples.tissue.types = data.frame(Samples = str_remove_all(string = anno$VAP_Names,pattern = "-"),
                                   Patient = anno$Patient,
                                   Stage = anno$Stage..Polyp..Normal..AdCa.,
                                   Size = sapply(str_split(anno$Size..mm.,"x",simplify = F),"[",1),
                                   Location = anno$Location,
+                                  NeoCellsInTumor = anno$NeoCellsInTumor,
+                                  TumorInTotal = anno$TumorInTotal,
                                   stringsAsFactors = F)
+
 #If Tissue is Normal, remove Size information
 samples.tissue.types$Size[samples.tissue.types$Stage=="Normal"] = "" 
 
@@ -138,30 +141,30 @@ names(col_patient) = unique(samples.tissue.types$Patient)
 col_stage = brewer.pal(n = length(unique(samples.tissue.types$Stage)),name = "Reds")
 names(col_stage) = c("","Normal","Polyp",  "AdCa") #unique(samples.tissue.types$stage)
 
-########
-piratepal()
+#Make color vector for Location
 piratepal(palette = "southpark",plot.result = T)
 col_location = piratepal(palette = "southpark",length.out = length(unique(samples.tissue.types$Location)))
 names(col_location) = c("","Ascending","Transverse", "Descending", "Rectum")
 
-# ha = HeatmapAnnotation(which = "column",show_annotation_name = T,
-#                        Patient = samples.tissue.types$Patient,
-#                        Stage = samples.tissue.types$Stage,
-#                        Size = samples.tissue.types$Size,
-#                        Location = samples.tissue.types$Location,
-#                        col = list(Patient = col_patient,
-#                                   Stage = col_stage,
-#                                   Size = col_size,
-#                                   Location = col_location),
-#                        na_col = "white",
-#                        gp = gpar(col = "black"))
+#Make Continuous Colors for Neoplastic Cells in Tumor
+col_neocellsintumor = colorRamp2(c(min(samples.tissue.types$NeoCellsInTumor,na.rm = T),
+                                   max(samples.tissue.types$NeoCellsInTumor,na.rm = T)),
+                                 c("orange", "darkred"))
+
+#Make Continuous Colors for Tumor in Total
+col_TumorInTotal = colorRamp2(c(min(samples.tissue.types$TumorInTotal,na.rm = T),
+                                max(samples.tissue.types$TumorInTotal,na.rm = T)),
+                              c("lightblue", "black"))
+
 
 ha = HeatmapAnnotation(which = "column",show_annotation_name = T,
-                       df = samples.tissue.types[,2:5],
+                       df = samples.tissue.types[,2:length(colnames(samples.tissue.types))],
                        col = list(Patient = col_patient,
                                   Stage = col_stage,
                                   Size = col_size,
-                                  Location = col_location),
+                                  Location = col_location,
+                                  NeoCellsInTumor = col_neocellsintumor,
+                                  TumorInTotal = col_TumorInTotal),
                        na_col = "white",
                        gp = gpar(col = "black"))
 

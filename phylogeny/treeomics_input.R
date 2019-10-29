@@ -9,12 +9,21 @@ library(dplyr);library(tidyr);library(stringr)
 setwd("~/Google Drive/Stanford_postdoc/Research/FAP Samples_EdEsplin/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/")
 
 ############ Prep for Treeomics
-pts=c("JP","EP")
+# pts=c("JP","EP");setwd("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/");pt = "EP"
 pts=c("A001","A002")
-pt="A001"
+pt="A002"
+file.type = "ccf"
+
+
 for (pt in pts) {
   if (grepl(pattern = "EP|JP",x = pt)) {
-    sampAB<-read.table(file = paste0("mutect.snv.res.filtered.classified.founds.nopara.somatic.table.preCCF.q100.",pt,".txt"), header = T, sep = "\t")
+    
+    #If file type is CCF, read the ccf file
+    if(file.type=="ccf"){
+      sampAB = read.table(file = paste0("mutect.snv.res.filtered.classified.founds.nopara.somatic.table.adjustedCCF.q100.",pt,".txt"), header = T, sep = "\t")
+    } else {
+      sampAB = read.table(file = paste0("mutect.snv.res.filtered.classified.founds.nopara.somatic.table.simplified.txt"), header = T, sep = "\t")
+    }
     #select ref and alt columns and melt the table. Modify sample names too.
     snvs<-select(sampAB,
                  Chromosome = chr,
@@ -24,31 +33,44 @@ for (pt in pts) {
                  ends_with("d"), ends_with("altc"),-id,-CADD_phred,-Polyphen2_HVAR_pred,-ends_with("ccfSD"))%>%
       unite(col = "Change",c("ref","alt"),sep = ">")
   } else if (grepl(pattern = "A001|A002",x = pt)){
-    sampAB<-read.table(file = paste0("mutect.snv.res.filtered.classified.founds.nopara.somatic.table.simplified.txt"), header = T, sep = "\t")
     
-    #select ref and alt columns and melt the table. Modify sample names too.
-    snvs<-select(sampAB,
-                 Chromosome = chr,
-                 Position = pos,
-                 ref, alt,
-                 geneName, geneLoc, functionalClass,
-                 ends_with("d"), ends_with("maf"),-id,-CADD_phred,-Polyphen2_HVAR_pred,-ends_with("ccfSD"))%>%
-      unite(col = "Change",c("ref","alt"),sep = ">")
-    
-    #Calculate altc value from d and maf
-    snvs.col.arranged = snvs[,grepl("A0",colnames(snvs))] #find all sample columns with "A0"
-    snvs.col.arranged.d = snvs.col.arranged[,str_ends(colnames(snvs.col.arranged),"d")] #collect all d cols
-    snvs.col.arranged.maf = snvs.col.arranged[,str_ends(colnames(snvs.col.arranged),"maf")] #collect all maf cols
-    
-    #need whole numbers in output
-    altc = round(snvs.col.arranged.d * snvs.col.arranged.maf) # d times maf is alt count
-    str_sub(colnames(altc),start = -1) = "_altc" #change "d" of colnames to "altc"
-    snvs = cbind(snvs,altc) #put all columns back together
-    rm(snvs.col.arranged,snvs.col.arranged.d,snvs.col.arranged.maf)
-    
-    #select only columns for specific patients
-    pt.index = which(grepl(pattern = pt,colnames(snvs)))
-    snvs = snvs[,c(1:6,pt.index)]
+    #If file type is CCF, read the ccf file
+    if(file.type=="ccf"){
+      sampAB = read.table(file = paste0("mutect.snv.res.filtered.classified.founds.nopara.somatic.table.ccf.",pt,".txt"), header = T, sep = "\t")
+      #select ref and alt columns and melt the table. Modify sample names too.
+      snvs<-select(sampAB,
+                   Chromosome = chr,
+                   Position = pos,
+                   ref, alt,
+                   geneName, geneLoc, functionalClass,
+                   ends_with("d"), ends_with("altc"),-id,-CADD_phred,-Polyphen2_HVAR_pred,-ends_with("ccfSD"))%>%
+        unite(col = "Change",c("ref","alt"),sep = ">")
+    } else {
+      sampAB = read.table(file = paste0("mutect.snv.res.filtered.classified.founds.nopara.somatic.table.preCCF.q100.",pt,".txt"), header = T, sep = "\t")
+      #select ref and alt columns and melt the table. Modify sample names too.
+      snvs<-select(sampAB,
+                   Chromosome = chr,
+                   Position = pos,
+                   ref, alt,
+                   geneName, geneLoc, functionalClass,
+                   ends_with("d"), ends_with("maf"),-id,-CADD_phred,-Polyphen2_HVAR_pred,-ends_with("ccfSD"))%>%
+        unite(col = "Change",c("ref","alt"),sep = ">")
+      
+      #Calculate altc value from d and maf
+      snvs.col.arranged = snvs[,grepl("A0",colnames(snvs))] #find all sample columns with "A0"
+      snvs.col.arranged.d = snvs.col.arranged[,str_ends(colnames(snvs.col.arranged),"d")] #collect all d cols
+      snvs.col.arranged.maf = snvs.col.arranged[,str_ends(colnames(snvs.col.arranged),"maf")] #collect all maf cols
+      
+      #need whole numbers in output
+      altc = round(snvs.col.arranged.d * snvs.col.arranged.maf) # d times maf is alt count
+      str_sub(colnames(altc),start = -1) = "_altc" #change "d" of colnames to "altc"
+      snvs = cbind(snvs,altc) #put all columns back together
+      rm(snvs.col.arranged,snvs.col.arranged.d,snvs.col.arranged.maf)
+      
+      #select only columns for specific patients
+      pt.index = which(grepl(pattern = pt,colnames(snvs)))
+      snvs = snvs[,c(1:6,pt.index)]
+    }
   }
   
   
@@ -64,12 +86,12 @@ for (pt in pts) {
   
   #Make mutation reads table  
   mutreads = select(snvs,Chromosome,	Position,	Change,	Gene, ends_with("altc"),-starts_with("bp"))
-  colnames(mutreads) = str_remove(colnames(mutreads),"_altc")
+  colnames(mutreads) = str_remove(colnames(mutreads),"_altc");colnames(mutreads) = str_remove(colnames(mutreads),"altc")
   if (pt == "EP|JP") {
     colnames(mutreads)[5:length(colnames(mutreads))] = str_replace_all(string = colnames(mutreads)[5:length(colnames(mutreads))],
                                                                        pattern = "\\.",replacement = "_")
   }
-  colnames(mutreads)  
+  message(colnames(mutreads))
   
   #Make phred table
   phred = select(snvs,Chromosome,	Position,	Change,	Gene, ends_with("d"))
@@ -80,6 +102,7 @@ for (pt in pts) {
                                                                  pattern = "\\.",
                                                                  replacement = "_")
   }
+  #make sure the columns of the 2 tables match
   phred = phred[colnames(mutreads)]
   
   if (grepl(pattern = "EP|JP",x = pt)) {
@@ -90,13 +113,13 @@ for (pt in pts) {
                 sep = "\t", append = F, row.names = F)
     
   } else if (grepl(pattern = "A001|A002",x = pt)){
-    write.table(phred,file = paste0(pt,"_WGS_phredcoverage.txt"),
+    write.table(phred,file = paste0("treeomics/",pt,"_WGS_phredcoverage_",file.type,".txt"),
                 sep = "\t", append = F, row.names = F)
-    
-    write.table(mutreads,file = paste0(pt,"_WGS_mutant_reads.txt"),
+    message(paste0("wrote phred table for ",pt))
+    write.table(mutreads,file = paste0("treeomics/",pt,"_WGS_mutant_reads_",file.type,".txt"),
                 sep = "\t", append = F, row.names = F)
+    message(paste0("wrote mutreads table for ",pt))
   }
-  
 }
 
   

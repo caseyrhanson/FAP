@@ -18,7 +18,7 @@ driver.colors = data.frame("geneName" = sort(unique(drivers$Gene)),
 # pt = "A001"
 # patients = c("A001","A002");setwd("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/")
 # pt = "EP";setwd("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/")
-patients = c("EP","JP");setwd("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/")
+patients = c("EP","JP");setwd("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/");pt = "EP"
 
 for (pt in patients) {
   if (pt == "EP" | pt == "JP") {
@@ -30,7 +30,7 @@ for (pt in patients) {
     ccf.table = read.table(file = paste0("mutect.snv.res.filtered.classified.founds.nopara.somatic.table.ccf.",pt,".txt"),
                            header = T,sep = "\t",stringsAsFactors = F)
   }
-  ccf.table.cols = select(ccf.table,1:5,geneName,geneLoc,functionalClass,CADD_phred,ends_with("ccf"),-contains("bpccf"),-mergeCCF)
+  ccf.table.cols = select(ccf.table,1:5,geneName,geneLoc,functionalClass,CADD_phred,ends_with("ccf"),-contains("bpccf"),-mergeCCF,somatic)
   ccf.cols = which(grepl("ccf",colnames(ccf.table.cols)))
   ccf.cols.name = grep("ccf",colnames(ccf.table.cols),value = T)
   ccf.cols.name.woccf = str_remove(string = ccf.cols.name,pattern = "ccf")
