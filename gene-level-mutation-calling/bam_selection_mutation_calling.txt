@@ -1,0 +1,46 @@
+
+
+## Select only the APC region with known clinical variants (based on clinvar for FAP APC mutations)
+
+APC - "chr5:112707373-112846213"
+chr5:112737885-112846239
+
+/home/ahorning/DNAseq/Bulk_WGS-WES_May2019/root_WGS-A001-A002/A001_blood/02_MAPPING/A001_blood.sorted.ir.br.rmDup.md.bam
+
+
+samtools view -b -h /home/ahorning/DNAseq/Bulk_WGS-WES_May2019/root_WGS-A001-A002/A001C007/02_MAPPING/A001C007.sorted.ir.br.rmDup.md.bam "chr5:112707373-112846213" > /home/ahorning/DNAseq/Bulk_WGS-WES_May2019/root_WGS-A001-A002/A001C007/02_MAPPING/A001C007_APC.sorted.ir.br.rmDup.md.bam
+
+
+## call variants
+
+bcftools mpileup -f /home/ahorning/DNAseq/Reference/Homo_sapiens_assembly38.fasta \
+ /home/ahorning/DNAseq/Bulk_WGS-WES_May2019/root_WGS-A001-A002/A001C007/02_MAPPING/A001C007_APC.sorted.ir.br.rmDup.md.bam | bcftools call -mv -Ov -o A001C007_APC.sorted.ir.br.rmDup.md.bam.vcf
+
+##filter variants
+
+bcftools filter -i'%QUAL>20' A001_blood_APC.sorted.ir.br.rmDup.md.bam.vcf | bcftools stats | grep TSTV
+
+### annotate variants vile
+
+clinvar.vcf_GRCh38.vcf
+clinvar.vcf_GRCh38.chr.vcf
+
+#changes "5" to "chr5" for example, in the vcf file
+awk '{ 
+        if($0 !~ /^#/) 
+            print "chr"$0;
+        else if(match($0,/(##contig=<ID=)(.*)/,m))
+            print m[1]"chr"m[2];
+        else print $0 
+      }' clinvar.vcf_GRCh38.vcf > clinvar.vcf_GRCh38.chr.vcf
+
+
+#annotate with ClinVar
+bcftools annotate -a /home/ahorning/DNAseq/Reference/clinvar.vcf_GRCh38.chr.vcf.gz A001C007_APC.sorted.ir.br.rmDup.md.bam.vcf.gz > A001C007_APC.sorted.ir.br.rmDup.md.bam.vcf_ClinAnno.vcf.gz
+
+
+
+#annotate with dbSNP
+bcftools annotate -a /home/ahorning/DNAseq/Reference/dbsnp_146.hg38.vcf.gz A001C007_APC.sorted.ir.br.rmDup.md.bam.vcf.gz > A001C007_APC.sorted.ir.br.rmDup.md.bam.vcf.dbSNP.vcf.gz
+
+bcftools annotate -a /reference/ncbi/refseq/H_sapiens/annotation/GRCh38_latest/refseq_identifiers/GRCh38_latest_clinvar.vcf.gz A001C007_APC.sorted.ir.br.rmDup.md.bam.vcf.gz > A001C007_APC.sorted.ir.br.rmDup.md.bam.vcf.dbSNP.vcf.gz

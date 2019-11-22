@@ -1,0 +1,45 @@
+
+
+source activate py34
+cd /Users/ahorning/treeomics/src
+
+#original code which worked
+(py34) DN0a22f0bb:src ahorning$ python treeomics -r '/Users/ahorning/Google Drive/Stanford_postdoc/Research/FAP Samples_EdEsplin/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/EP_mutant_reads.txt' -s '/Users/ahorning/Google Drive/Stanford_postdoc/Research/FAP Samples_EdEsplin/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/EP_phredcoverage.txt' -g grch38 &> /Users/ahorning/Desktop/treeomics_output.txt 
+
+#If need help
+# python treeomics --help
+
+#Ran for A001 on preCCF adjusted mutations
+READS='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A001_WGS_mutant_reads.txt'
+COVERAGE='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A001_WGS_phredcoverage.txt'
+#made a new output folder next time within treeomics
+OUTPUT='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A001' 
+python treeomics -r $READS -s $COVERAGE -g grch38 -u -o $OUTPUT &> /Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A001_treeomics_output.txt
+
+#Ran for A002 on preCCF adjusted mutations
+READS='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A002_WGS_mutant_reads.txt'
+COVERAGE='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A002_WGS_phredcoverage.txt'
+#made a new output folder next time within treeomics
+OUTPUT='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A002_wes_filtering' 
+python treeomics -r $READS -s $COVERAGE -g grch38 -u -o $OUTPUT --verbose --threads 8 --wes_filtering &> /Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A002_wes_filtering_treeomics_output.txt
+
+
+10/25/19
+#Will run for A001 on CCF-adjusted mutations
+READS='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A001_WGS_mutant_reads_ccf.txt'
+COVERAGE='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A001_WGS_phredcoverage_ccf.txt'
+#made a new output folder next time within treeomics
+OUTPUT='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A001_ccf_adjusted' 
+python treeomics -r $READS -s $COVERAGE -g grch38 -u -o $OUTPUT &> /Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A001_ccf_adjusted_treeomics_output.txt
+
+10/25/19.... hasnt run yet
+#Will run for A002 on CCF-adjusted mutations
+READS='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A002_WGS_mutant_reads.txt'
+COVERAGE='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A002_WGS_phredcoverage.txt'
+#made a new output folder next time within treeomics
+OUTPUT='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A002_ccf_adjusted' 
+python treeomics -r $READS -s $COVERAGE -g grch38 -u -o $OUTPUT --threads 16 &> /Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/treeomics/A002_ccf_adjusted_treeomics_output.txt
+
+
+
+

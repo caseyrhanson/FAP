@@ -1,0 +1,49 @@
+
+These are the instructions for using DNAscope to call all the variants in a sample compared to a reference genome.
+After calling the variants with a low cut-off, the variants are filtered with `bcftools filter` for quality and read depth and then indexed.
+Then the variants are merged for all of the samples into a "given" list.
+Then, with this "given" list of variants, we use DNAscope again to find how these variants are called in all of the samples.
+
+The output is a VCF file with matching variants for every sample. you may either merge the VCFs next (using the same steps as previously used) 
+or keep the VCFs separated.
+
+
+1) Call all DNAscope calls
+		
+		# usage: stil need to run these
+for sample in B001A001 B001A006 B001A101 B001A201 B001A301 B001A401 B001A406 B001A501; do
+	echo sbatch DNAscope_slurm_submit.sh $sample
+done
+
+		reference=file:///home/ahorning/DNAseq/Reference/Homo_sapiens_assembly38.fasta
+
+2) Filter every file
+		Filter Step:
+			bcftools filter '-eQUAL<100 || FMT/DP<10' -O z -o B001A501.DNAscope.dbSNP.vcf.qual100dp10.gz B001A501.DNAscope.dbSNP.vcf.gz
+
+			Make Tabix files before merging
+			for f in B001A*qual100dp10.gz; do tabix -p vcf $f; done
+
+
+3) Merge all the filtered files into a "given" set from which to call from next
+		bcftools merge -m all -o B001A_WGS_Oct2019_hg38.vcf.qual100dp10.gz B001A001.DNAscope.dbSNP.vcf.qual100dp10.gz  B001A201.DNAscope.dbSNP.vcf.qual100dp10.gz  B001A406.DNAscope.dbSNP.vcf.qual100dp10.gz B001A006.DNAscope.dbSNP.vcf.qual100dp10.gz  B001A301.DNAscope.dbSNP.vcf.qual100dp10.gz  B001A501.DNAscope.dbSNP.vcf.qual100dp10.gz B001A101.DNAscope.dbSNP.vcf.qual100dp10.gz  B001A401.DNAscope.dbSNP.vcf.qual100dp10.gz
+
+		make sure the merged file is actually bgzipped. check with htsfile, tabix and bgzip.
+
+4) Recall Variants on every sample based on "given" set.
+				# usage: stil need to run these. 
+				# make sure to adjust the code in the script so that we use the script with the given argument
+				for sample in B001A001 B001A006 B001A101 B001A201 B001A301 B001A401 B001A406 B001A501; do
+					echo sbatch DNAscope_slurm_submit.sh $sample
+				done
+	
+
+5) Merge all the files together again.
+
+			bcftools merge -m all -o B001A_WGS_Oct2019_hg38.vcf.qual100dp10.mergegiven.gz B001A001.mergegiven.DNAscope.dbSNP.vcf.gz  B001A201.mergegiven.DNAscope.dbSNP.vcf.gz  B001A406.mergegiven.DNAscope.dbSNP.vcf.gz B001A006.mergegiven.DNAscope.dbSNP.vcf.gz  B001A301.mergegiven.DNAscope.dbSNP.vcf.gz  B001A501.mergegiven.DNAscope.dbSNP.vcf.gz B001A101.mergegiven.DNAscope.dbSNP.vcf.gz B001A401.mergegiven.DNAscope.dbSNP.vcf.gz
+
+
+
+
+
+

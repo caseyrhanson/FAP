@@ -1,9 +1,9 @@
 rm(list=ls())
 #For A001,A002
-#setwd("/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/")
+setwd("/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/")
 
 #For EP and JP WGS data
-setwd("/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/")
+# setwd("/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/")
 #########
 # Consider something like this to collect all of the mutations per sample
 # x = data.frame(matrix(c(1,2,3,10),byrow = T,nrow = 2),stringsAsFactors = F)
@@ -20,18 +20,27 @@ source("~/aarons_FAP_github_repository/vapReduce_cover,vcover,mutect.R")
 #For A001,A002
   # vap = read.table(file = "~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/mutect.snv.res.filtered.classified.founds.nopara.somatic.table.simplified",
   # header = T,sep = "\t")
-#For EP and JP WGS
-vap = read.table(file = "~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/mutect.snv.res.filtered.classified.founds.nopara.somatic.table.simplified.txt",
-                 header = T,sep = "\t")
+
+  
+# For EP and JP WGS
+# vap = read.table(file = "~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/mutect.snv.res.filtered.classified.founds.nopara.somatic.table.simplified.txt",
+#                  header = T,sep = "\t")
 
 ######### for practice
 #vap = head(vap,100)
 
-#pts = c("A001", "A002")
-pts = c("EP","JP")
+pts = c("A001", "A002")
+pts = "A001"
+pt = "A002"
+# pts = c("EP","JP")
 for (pt in pts) {
+  
+  path = paste0("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/mutect.snv.res.filtered.classified.founds.nopara.somatic.table.ccf.",pt,".txt")
+  vap =  read.table(file = path,
+                    header = T,sep = "\t")
+  
   #creates maf table and sample name lists
-  maf = vapReduce_cover_vcover_mutect(vap,pt)
+  maf = vapReduce_cover_vcover_mutect(vap,pt,"ccf")
   message(paste("Patient",pt,"table chosen"))
   
   
@@ -61,7 +70,7 @@ for (pt in pts) {
   cover.columns = maf$phylip.input.maf.file%>%select(ends_with("d"))%>%select(-id)
   cover.columns[is.na(cover.columns)]<-0
   mutect.columns = maf$phylip.input.maf.file%>%select(ends_with("mutect"))
-  freq.columns = maf$phylip.input.maf.file%>%select(ends_with("maf"))
+  freq.columns = maf$phylip.input.maf.file%>%select(contains("maf"))
   freq.columns[is.na(freq.columns)]<-0
   
   #Based on the individual columns values, determine whether or not there was a mutation, and add either "ref" or "alt" to the makeshift 
@@ -115,8 +124,8 @@ for (pt in pts) {
   
   ########################## Save the fasta files by patient
   message(paste("Creating and saving the fasta file for patient",pt))
-  sink(paste0("mutect.snv.res.filtered.classified.founds.nopara.somatic.table.simplified.phylipinput.",pt,".fasta"))
-  
+  # sink(paste0("mutect.snv.res.filtered.classified.founds.nopara.somatic.table.simplified.phylipinput.",pt,".fasta"))
+  sink(paste0("phylip/mutect.snv.res.filtered.classified.founds.nopara.somatic.table.ccf.",pt,".txt",".fasta"))
   if (pt=="EP" | pt=="JP") {
     cat(">Normal")
     cat("\n")
@@ -132,6 +141,10 @@ for (pt in pts) {
       cat("\n")
     }
   }else{
+    cat(">Normal")
+    cat("\n")
+    cat(paste(ref_allele,collapse=""))
+    cat("\n")
     for (sample in 1:length(maf$patient.samplenames)) {
       temp = get(paste0(maf$patient.samplenames[sample]))
       str_flatten(temp)

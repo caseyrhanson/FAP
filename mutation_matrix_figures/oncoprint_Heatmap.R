@@ -103,7 +103,8 @@ onc.plot = draw(oncoPrint(mat = onc.matrix.less,get_type = get_type_fun,
 
 #read in the sample table with the sample names and its associated tissue types
 source("~/aarons_FAP_github_repository/recent_Annotation.R")
-anno = recent_Annotation(go_online_clinical = "yes",go_online_pathology = "yes")
+# anno = recent_Annotation(go_online_clinical = "yes",go_online_pathology = "yes")
+anno = recent_Annotation("no")
 samples.tissue.types = data.frame(Samples = str_remove_all(string = anno$VAP_Names,pattern = "-"),
                                   Patient = anno$Patient,
                                   Stage = anno$Stage..Polyp..Normal..AdCa.,
@@ -111,7 +112,16 @@ samples.tissue.types = data.frame(Samples = str_remove_all(string = anno$VAP_Nam
                                   Location = anno$Location,
                                   NeoCellsInTumor = anno$NeoCellsInTumor,
                                   TumorInTotal = anno$TumorInTotal,
+                                  nonNeoStromaInTotal = anno$nonNeoStromaInTotal,
+                                  PercentNormalOverall = anno$PercentNormalOverall,
+                                  PercentStromaOverall = anno$PercentStromaOverall,
+                                  PercentCancerOverall = anno$PercentCancerOverall,
+                                  PercentAdenomaOverall = anno$PercentAdenomaOverall,
+                                  PercentStromaInCancer = anno$PercentStromaInCancer,
+                                  PercentStromaInAdenoma = anno$PercentStromaInAdenoma,
+                                  PercentNecrosisInTumor = anno$PercentNecrosisInTumor,
                                   stringsAsFactors = F)
+
 
 #If Tissue is Normal, remove Size information
 samples.tissue.types$Size[samples.tissue.types$Stage=="Normal"] = "" 
@@ -142,7 +152,6 @@ col_stage = brewer.pal(n = length(unique(samples.tissue.types$Stage)),name = "Re
 names(col_stage) = c("","Normal","Polyp",  "AdCa") #unique(samples.tissue.types$stage)
 
 #Make color vector for Location
-piratepal(palette = "southpark",plot.result = T)
 col_location = piratepal(palette = "southpark",length.out = length(unique(samples.tissue.types$Location)))
 names(col_location) = c("","Ascending","Transverse", "Descending", "Rectum")
 
@@ -156,6 +165,70 @@ col_TumorInTotal = colorRamp2(c(min(samples.tissue.types$TumorInTotal,na.rm = T)
                                 max(samples.tissue.types$TumorInTotal,na.rm = T)),
                               c("lightblue", "black"))
 
+#Make Continuous Colors for Neoplastic Cells in Tumor
+col_neocellsintumor = circlize::colorRamp2(c(min(samples.tissue.types$NeoCellsInTumor,na.rm = T),
+                                             max(samples.tissue.types$NeoCellsInTumor,na.rm = T)),
+                                           c("orange", "darkred"))
+
+#Make Continuous Colors for Tumor in Total
+col_TumorInTotal = circlize::colorRamp2(c(min(samples.tissue.types$TumorInTotal,na.rm = T),
+                                          max(samples.tissue.types$TumorInTotal,na.rm = T)),
+                                        c("lightblue", "black"))
+
+
+# Make Continuous Colors for PercentNormalOverall
+# PercentNormalOverall light greeen dark green
+col_PercentNormalOverall = circlize::colorRamp2(c(min(samples.tissue.types$PercentNormalOverall,na.rm = T),
+                                                  max(samples.tissue.types$PercentNormalOverall,na.rm = T)),
+                                                c("lightgreen", "darkgreen"))
+
+# Make Continuous Colors for Percent Stroma Overall
+# "PercentStromaOverall"  
+col_PercentStromaOverall = circlize::colorRamp2(c(min(samples.tissue.types$PercentStromaOverall,na.rm = T),
+                                                  max(samples.tissue.types$PercentStromaOverall,na.rm = T)),
+                                                c("lightyellow1", "yellowgreen"))
+
+
+# Make Continuous Colors for Percent Cancer Overall
+# "PercentCancerOverall"   
+col_PercentCancerOverall = circlize::colorRamp2(c(min(samples.tissue.types$PercentCancerOverall,na.rm = T),
+                                                  max(samples.tissue.types$PercentCancerOverall,na.rm = T)),
+                                                c("mediumpurple1", "mediumpurple4"))
+
+# Make Continuous Colors for Percent Stroma in Cancer
+# "PercentStromaInCancer"  
+col_PercentStromaInCancer = circlize::colorRamp2(c(min(samples.tissue.types$PercentStromaInCancer,na.rm = T),
+                                                   max(samples.tissue.types$PercentStromaInCancer,na.rm = T)),
+                                                 c("mediumpurple4","yellowgreen"))
+
+# Make Continuous Colors for Percent Necrosis in Tumor
+"PercentNecrosisInTumor" 
+col_PercentNecrosisInTumor = circlize::colorRamp2(c(min(samples.tissue.types$PercentNecrosisInTumor,na.rm = T),
+                                                    1),
+                                                  c("grey89","red4"))
+
+
+# Make Continuous Colors for Percent Adenoma Overall
+# "PercentAdenomaOverall" 
+col_PercentAdenomaOverall = circlize::colorRamp2(c(min(samples.tissue.types$PercentAdenomaOverall,na.rm = T),
+                                                   max(samples.tissue.types$PercentAdenomaOverall,na.rm = T)),
+                                                 c("lightpink","deeppink3"))
+
+# Make Continuous Colors for PercentStromaInAdenoma
+# "PercentStromaInAdenoma"
+col_PercentStromaInAdenoma = circlize::colorRamp2(c(min(samples.tissue.types$PercentStromaInAdenoma,na.rm = T),
+                                                    max(samples.tissue.types$PercentStromaInAdenoma,na.rm = T)),
+                                                  c("yellowgreen","deeppink3"))
+#########
+
+
+PercentNormalOverall = col_PercentNormalOverall,
+PercentStromaOverall = col_PercentStromaOverall,
+PercentCancerOverall = col_PercentCancerOverall,
+PercentStromaInCancer = col_PercentStromaInCancer,
+PercentNecrosisInTumor = col_PercentNecrosisInTumor),
+########
+
 
 ha = HeatmapAnnotation(which = "column",show_annotation_name = T,
                        df = samples.tissue.types[,2:length(colnames(samples.tissue.types))],
@@ -164,54 +237,38 @@ ha = HeatmapAnnotation(which = "column",show_annotation_name = T,
                                   Size = col_size,
                                   Location = col_location,
                                   NeoCellsInTumor = col_neocellsintumor,
-                                  TumorInTotal = col_TumorInTotal),
+                                  TumorInTotal = col_TumorInTotal,
+                                  PercentNormalOverall = col_PercentNormalOverall,
+                                  PercentStromaOverall = col_PercentStromaOverall,
+                                  PercentCancerOverall = col_PercentCancerOverall,
+                                  PercentStromaInCancer = col_PercentStromaInCancer,
+                                  PercentNecrosisInTumor = col_PercentNecrosisInTumor),
                        na_col = "white",
                        gp = gpar(col = "black"))
 
 #rename sample names: EP to F and JP to G
 colnames(onc.matrix.less) = str_replace_all(string = colnames(onc.matrix.less),pattern = "EP",replacement = "F")
 colnames(onc.matrix.less) = str_replace_all(string = colnames(onc.matrix.less),pattern = "JP",replacement = "G")
-onc.plot = draw(oncoPrint(mat = onc.matrix.less,get_type = get_type_fun,
+# onc.plot = draw(oncoPrint(mat = onc.matrix.less,get_type = get_type_fun,
+#                           alter_fun = alter_fun,
+#                           col = col,show_column_names = T,column_order = NULL,
+#                           pct_gp = gpar(cex = 0.8),column_names_gp = gpar(cex=0.6),row_names_gp = gpar(cex = 0.8),
+#                           bottom_annotation = ha,
+#                           width = unit(x = 12,units = "cm")))
+
+onc.plot = oncoPrint(mat = onc.matrix.less,get_type = get_type_fun,
                           alter_fun = alter_fun,
                           col = col,show_column_names = T,column_order = NULL,
                           pct_gp = gpar(cex = 0.8),column_names_gp = gpar(cex=0.6),row_names_gp = gpar(cex = 0.8),
                           bottom_annotation = ha,
-                          width = unit(x = 12,units = "cm")))
+                          width = unit(x = 12,units = "cm"))
+
 
 #Save the plot
-svg(filename = "A001_A002_F_G_oncoplot.svg",width = 12)
+svg(filename = "A001_A002_F_G_oncoplot_annotations.svg",width = 14, height = 20)
 onc.plot
 dev.off()
 
-
-# 
-# ### Adding colors to the annotations
-# col_fun = colorRamp2(c(0, 5, 10), c("blue", "white", "red"))
-# ha = HeatmapAnnotation(foo = 1:10, col = list(foo = col_fun))
-# 
-# 
-# #Make the annotations now that we have the order of the columns
-# onc.annos = columnAnnotation(samples.tissue.types)
-
-
-
-# alter_fun = list(
-#   mut1 = function(x, y, w, h) 
-#     grid.rect(x, y, w, h, gp = gpar(fill = "red", col = NA)),
-#   mut2 = function(x, y, w, h) 
-#     grid.rect(x, y, w, h, gp = gpar(fill = "blue", col = NA)),
-#   mut3 = function(x, y, w, h) 
-#     grid.rect(x, y, w, h, gp = gpar(fill = "yellow", col = NA)),
-#   mut4 = function(x, y, w, h) 
-#     grid.rect(x, y, w, h, gp = gpar(fill = "purple", col = NA)),
-#   mut5 = function(x, y, w, h) 
-#     grid.rect(x, y, w, h, gp = gpar(fill = NA, lwd = 2)),
-#   mut6 = function(x, y, w, h) 
-#     grid.points(x, y, pch = 16),
-#   mut7 = function(x, y, w, h) 
-#     grid.segments(x - w*0.5, y - h*0.5, x + w*0.5, y + h*0.5, gp = gpar(lwd = 2))
-# )
-# test_alter_fun(alter_fun)
-# 
-# 
-# 
+svg(filename = "A001_A002_F_G_oncoplot_heatmap.svg",width = 14, height = 10)
+onc.plot
+dev.off()
