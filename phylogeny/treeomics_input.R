@@ -10,10 +10,10 @@ setwd("~/Google Drive/Stanford_postdoc/Research/FAP Samples_EdEsplin/DNAseq_WGS/
 
 ############ Prep for Treeomics
 # pts=c("JP","EP");setwd("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/");pt = "EP"
-pts=c("A001","A002")
-pt="A002"
+# pts=c("A001","A002")
+# pt="A002"
 file.type = "ccf"
-
+pts = "A002"
 
 for (pt in pts) {
   if (grepl(pattern = "EP|JP",x = pt)) {
@@ -76,6 +76,7 @@ for (pt in pts) {
   
   
   #Make new geneName column to specify exonic versus non-exonic mutations
+  i = 1
   for (i in 1:nrow(snvs)) {
     if (snvs[i,"geneLoc"]=="exonic") {
       snvs$Gene[i] = paste0(snvs[i,"geneName"])
@@ -86,10 +87,11 @@ for (pt in pts) {
   
   #Make mutation reads table  
   mutreads = select(snvs,Chromosome,	Position,	Change,	Gene, ends_with("altc"),-starts_with("bp"))
-  colnames(mutreads) = str_remove(colnames(mutreads),"_altc");colnames(mutreads) = str_remove(colnames(mutreads),"altc")
-  if (pt == "EP|JP") {
+  colnames(mutreads) = str_remove(colnames(mutreads),"_altc")
+  colnames(mutreads) = str_remove(colnames(mutreads),"altc")
+  if (pt %in% c("EP","JP")) {
     colnames(mutreads)[5:length(colnames(mutreads))] = str_replace_all(string = colnames(mutreads)[5:length(colnames(mutreads))],
-                                                                       pattern = "\\.",replacement = "_")
+                                                                       pattern = "\\.",replacement = "")
   }
   message(colnames(mutreads))
   
@@ -97,19 +99,19 @@ for (pt in pts) {
   phred = select(snvs,Chromosome,	Position,	Change,	Gene, ends_with("d"))
   #remove the "d" at the end of the sample names
   colnames(phred)[5:length(colnames(phred))] = str_sub(colnames(phred)[5:length(colnames(phred))],end = -2)
-  if (pt == "EP|JP") {
+  if (pt %in% c("EP","JP")) {
     colnames(phred)[5:length(colnames(phred))] = str_replace_all(string = colnames(phred)[5:length(colnames(phred))],
                                                                  pattern = "\\.",
-                                                                 replacement = "_")
+                                                                 replacement = "")
   }
   #make sure the columns of the 2 tables match
   phred = phred[colnames(mutreads)]
   
   if (grepl(pattern = "EP|JP",x = pt)) {
-    write.table(phred,file = paste0(pt,"_WES_phredcoverage.txt"),
+    write.table(phred,file = paste0("treeomics_WGS_output/",pt,"_WGS_",file.type,"_phredcoverage.txt"),
                 sep = "\t", append = F, row.names = F)
     
-    write.table(mutreads,file = paste0(pt,"_WES_mutant_reads.txt"),
+    write.table(mutreads,file = paste0("treeomics_WGS_output/",pt,"_WGS_",file.type,"_mutant_reads.txt"),
                 sep = "\t", append = F, row.names = F)
     
   } else if (grepl(pattern = "A001|A002",x = pt)){
@@ -121,7 +123,7 @@ for (pt in pts) {
     message(paste0("wrote mutreads table for ",pt))
   }
 }
-
+nrow(mutreads)
   
 #Treeomics - https://github.com/johannesreiter/treeomics
 #phredcoverage.txt  

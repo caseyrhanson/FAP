@@ -1,18 +1,22 @@
 getSampMutMulti <- function(samples, normal, d, cmedianTh=2.2, original=4.3) {
     numsamples = length(samples)
-    rindexTF = vector()
-    cindex = vector()
-    for (si in 1:length(samples)) {
+    rindexTF = vector() #create empty index TRUE and FALSE vector for rows
+    cindex = vector() #create empty index TRUE and FALSE vector
+    # Find rows (mutations) which have the Sample names in the Somatic column
+    # These mutations are present in the samples
+     for (si in 1:length(samples)) {
         if (length(rindexTF) > 0) {
             rindexTF = rindexTF | grepl(paste(samples[si],"\\[",sep=""), d$somatic)
         } else {
             rindexTF = grepl(paste(samples[si],"\\[",sep=""), d$somatic)
         }
+        #Find columns which are "SampleNamemaf"
         cindex = append(cindex, match(paste(samples[si], "maf", sep=""), colnames(d)))
     }
     rindex = which(rindexTF)
+    #cindex is the column index for the sample names. Ex. EP-11, EP-11maf, EP-11d
     cindex = as.vector(sapply(cindex, function(x){c(x-1,x,x+1)}))
-    
+    #Find the Normal samples and the column next to it
     ncindex = match(paste(normal, "maf", sep=""), colnames(d))
     ncindex = as.vector(sapply(ncindex, function(x){c(x,x+1)}))  #normal samples maf and depth indexes
     
@@ -27,6 +31,7 @@ getSampMutMulti <- function(samples, normal, d, cmedianTh=2.2, original=4.3) {
     somindex = match("somatic", colnames(d))
     repindex = match("rep",colnames(d))
 
+    #Filter the dataset by rindex: only samples with mutations which are somatic
     if (! is.na(caddindex)) {
         res = d[rindex,c(1,2,3,4,5,cindex,gnindex,glindex,gfindex,caddindex,gerpindex,siftindex,polyphenindex,dronindex,repindex,somindex,ncindex)]
     } else {
@@ -34,6 +39,7 @@ getSampMutMulti <- function(samples, normal, d, cmedianTh=2.2, original=4.3) {
     }
     
     resColnames = colnames(res)
+    # x = res[1,]
     resAdd = t(data.frame(apply(res, 1, function(x, cindex, original, resColnames) {     #x is every row
               maxMaf = 0
               maxTlod = 0
@@ -42,8 +48,11 @@ getSampMutMulti <- function(samples, normal, d, cmedianTh=2.2, original=4.3) {
               ssbp = 0
               refdav = 0
               altdav = 0
-              for (j in seq(6,(3+length(cindex)), by=3)) {   #foreach sample get maxMaf
-                  ss = strsplit(as.character(x[j+1]), "\\|")
+              
+              # for each sample get maxMaf
+              # j = 36
+              for (j in seq(from = 6,to = (3+length(cindex)), by=3)) {   
+                  ss = strsplit(as.character(x[j+1]), "\\|") #maf values
                   mafTmp = as.numeric(ss[[1]][1])
                   oriTlodTmp = 0
                   if ( grepl("\\|", as.character(x[j])) ) {
@@ -59,7 +68,8 @@ getSampMutMulti <- function(samples, normal, d, cmedianTh=2.2, original=4.3) {
                   }
               }
               resVector = vector()
-              for (j in seq(6,(3+length(cindex)), by=3)) {   #foreach sample
+              # j = 6
+              for (j in seq(from = 6,to = (3+length(cindex)), by=3)) {   #foreach sample
                   sampleName = resColnames[j]
                   sampleNameMaf = paste(sampleName, "mafc", sep="")
                   sampleNameMafa = paste(sampleName, "mafa", sep="")

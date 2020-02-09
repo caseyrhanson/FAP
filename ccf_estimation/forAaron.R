@@ -1,7 +1,7 @@
 rm(list=ls())
 library(GenomicRanges);library(stringr)
 
-setwd("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/")
+# setwd("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/")
 
 source("~/aarons_FAP_github_repository/ccf_estimation/forAaron_source.R")
 
@@ -11,7 +11,7 @@ setwd("~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002/")
 #  loading data and prepare object "d"  #############################################################
 
 #read in file labelled "mutect.snv.res.filtered.classified.founds.nopara.somatic.table". Not the "simplified" file.
-d = read.delim("mutect.snv.res.filtered.classified.founds.nopara.somatic.table", header=T)
+d = read.delim("mutect.snv.res.filtered.classified.founds.nopara.somatic.table", header=T,sep = "\t")
 d$link = NULL
 d$mutect.snv.res.filtered.classified.founds.flanking.bam.out.bad = NULL
 dg = d[which(!is.na(d$germline)),]
@@ -107,3 +107,25 @@ write.table(x = A002,file = "mutect.snv.res.filtered.classified.founds.nopara.so
 # `AGP` is anueploid genotype percentage
 # `mafa` is VAF
 # `ccf` is CCF. Should plot mostly with this.(CCF is VAF multiplied by two until 1)
+
+
+# Testing filtration steps in getSampMutMulti() function with EP
+#read in file labelled "mutect.snv.res.filtered.classified.founds.nopara.somatic.table". Not the "simplified" file.
+path = "~/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/mutect.snv.res.filtered.classified.founds.nopara.somatic.table"
+d = read.delim(path, header=T,sep = "\t");rm(path)
+d$link = NULL
+d$mutect.snv.res.filtered.classified.founds.flanking.bam.out.bad = NULL
+dg = d[which(!is.na(d$germline)),]
+d = d[which(is.na(d$germline)),]
+d = d[which(d$chr != "X" & d$chr != "Y"),]
+d = data.frame(d, dron=0)
+colnames(d) = gsub("\\.", "-", colnames(d))
+
+#A001_redo if needed
+#  generate mutation Table for A001 #############################################################
+samplesall = as.character(gsub("maf", "", colnames(d)[which(grepl("maf$", colnames(d)))]))
+samples = samplesall[grepl("^EP", samplesall)]
+snormal = "EP-107-NL"
+samples = setdiff(samples, snormal)
+EP = getSampMutMulti(samples = samples,normal = snormal, d)
+

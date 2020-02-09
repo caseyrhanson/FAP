@@ -42,4 +42,56 @@ python treeomics -r $READS -s $COVERAGE -g grch38 -u -o $OUTPUT --threads 16 &> 
 
 
 
+Rerun CCF of EP and JP and A002. 1/9/20
+READS='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/EP_WGS_ccf_mutant_reads.txt'
+COVERAGE='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/EP_WGS_ccf_phredcoverage.txt'
+#made a new output folder next time within treeomics
+OUTPUT='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/EP_WGS_ccf' 
+python treeomics -r $READS -s $COVERAGE -g grch38 -u -o $OUTPUT --threads 16 &> /Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/EP_WGS_ccf_output.txt
+
+READS='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/JP_WGS_ccf_mutant_reads.txt'
+COVERAGE='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/JP_WGS_ccf_phredcoverage.txt'
+#made a new output folder next time within treeomics
+OUTPUT='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/JP_WGS_ccf' 
+python treeomics -r $READS -s $COVERAGE -g grch38 -u -o $OUTPUT --threads 16 &> /Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/JP_WGS_ccf_output.txt
+
+READS='/Users/ahorning/Bulk_A001_A002/treeomics/A002_WGS_mutant_reads_ccf.txt'
+COVERAGE='/Users/ahorning/Bulk_A001_A002/treeomics/A002_WGS_phredcoverage_ccf.txt'
+#made a new output folder next time within treeomics
+OUTPUT='/Users/ahorning/Bulk_A001_A002/treeomics/A002_ccf_adjusted' 
+python treeomics -r $READS -s $COVERAGE -g grch38 -u -o $OUTPUT --threads 16 &> /Users/ahorning/Bulk_A001_A002/treeomics/A002_ccf_adjusted_treeomics_output.txt
+# Doesnt work...it takes too long and nothing comes out. Maybe because lots of homoplasy??
+
+
+
+
+Rerun Adjusted CCF of A001, A002, EP and JP. 2/4/20
+READS='/Users/ahorning/Bulk_A001_A002/treeomics/A001_WGS_mutant_reads_CCF_Adjusted.txt'
+COVERAGE='/Users/ahorning/Bulk_A001_A002/treeomics/A001_WGS_phred_CCF_Adjusted.txt'
+#made a new output folder next time within treeomics
+OUTPUT='/Users/ahorning/Bulk_A001_A002/treeomics/A001_WGS_ccf_adjusted' 
+python treeomics -r $READS -s $COVERAGE -g grch38 -u -o $OUTPUT --threads 40 &> /Users/ahorning/Bulk_A001_A002/treeomics/A001_WGS_ccf_adjusted_output.txt
+
+READS='/Users/ahorning/Bulk_A001_A002/treeomics/A002_WGS_mutant_reads_CCF_Adjusted.txt'
+COVERAGE='/Users/ahorning/Bulk_A001_A002/treeomics/A002_WGS_phred_CCF_Adjusted.txt'
+#made a new output folder next time within treeomics
+OUTPUT='/Users/ahorning/Bulk_A001_A002/treeomics/A002_WGS_ccf_adjusted' 
+python treeomics -r $READS -s $COVERAGE -g grch38 -u -o $OUTPUT --threads 40 &> /Users/ahorning/Bulk_A001_A002/treeomics/A002_WGS_ccf_adjusted_output.txt
+
+READS='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/EP_WGS_mutant_reads_CCF_Adjusted.txt'
+COVERAGE='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/EP_WGS_phred_CCF_Adjusted.txt'
+#made a new output folder next time within treeomics
+OUTPUT='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/EP_WGS_ccf_adjusted' 
+python treeomics -r $READS -s $COVERAGE -g grch38 -u -o $OUTPUT --threads 40 &> /Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/EP_WGS_ccf_adjusted_output.txt
+
+READS='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/JP_WGS_mutant_reads_CCF_Adjusted.txt'
+COVERAGE='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/JP_WGS_phred_CCF_Adjusted.txt'
+#made a new output folder next time within treeomics
+OUTPUT='/Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/JP_WGS_ccf_adjusted' 
+python treeomics -r $READS -s $COVERAGE -g grch38 -u -o $OUTPUT --threads 40 &> /Users/ahorning/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/treeomics_WGS_output/JP_WGS_ccf_adjusted_output.txt
+
+
+
+
+
 

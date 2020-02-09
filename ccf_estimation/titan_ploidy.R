@@ -2,6 +2,11 @@ rm(list=ls())
 library(stringr);library(RColorBrewer)
 setwd("/Users/ahorning/Google Drive/Stanford_postdoc/Research/FAP Samples_EdEsplin/DNAseq_WGS/scripts/RupingPipelineLocalCopies/post-VAP/Bulk_A001_A002")
 
+#Make a list of the samples which are in the VAP output file
+load("~/aarons_FAP_github_repository/VAP/FAPccfDatasets.Rdata")
+ccf.data = list(ptA001,ptA002,ptF,ptG)
+ccf.sets = length(ccf.data)
+
 # gather samples names for A001
 pt="A001"
 
